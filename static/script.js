@@ -193,12 +193,16 @@ addForm.addEventListener("submit", (event) => {
 
 // ---------- When the page first opens: am I already logged in? ----------
 async function start() {
-  try {
-    const user = await api("/me");   // works if the login cookie is still valid
-    showTodoView(user);
-  } catch (error) {
-    showAuthView();
-  }
+    try {
+        const user = await api("/me");
+        if (user) {
+            showTodoView(user);
+        } else {
+            showAuthView();
+        }
+    } catch (error) {
+        showAuthView();
+    }
 }
 
 start();

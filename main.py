@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
-from typing import List
+from typing import List, Optional
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase, relationship
@@ -196,9 +196,12 @@ def logout(request: Request):
     return {"message": "Logged out."}
 
 
-@app.get("/me", response_model=UserRead)
-def me(user: User = Depends(get_current_user)):
-    return user
+@app.get("/me", response_model=Optional[UserRead])
+def me(request: Request, db: Session = Depends(get_db)):
+    userId = request.session.get("user_id")
+    if userId is None:
+        return None          # not logged in: a normal answer, not an error
+    return db.get(User, userId)
 
 
 # --- Todo endpoints (all require login) ---
