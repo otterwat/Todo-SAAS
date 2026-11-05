@@ -1,12 +1,36 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import Optional, List
 
-app = FastAPI()
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, session
+from sqlalchemy.ext.declarative import declarative_base
+
+
+dataBaseURL = ("sqlite:///todos.db")
+engine = create_engine(dataBaseURL, connect_args={"check_same_thread": False})
+sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+app = FastAPI(title="TODO List API")
+
 todoList = []
 
-class TodoItem(BaseModel):
+
+class TodoItem(Base):
+	__tablename__ = "todos"
+
+	id = Column(Integer, primary_key=True, index=True)
+	text = Column(String(200), index=True)
+
+Base.metadata.create_all(engine)
+
+class TodoCreate(BaseModel):
 	text: str
 
+class TodoRead(BaseModel):
+	id: int
+	text: str
 
 @app.get("/")
 def root():
