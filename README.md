@@ -7,3 +7,4 @@ fastapi
 sqlalchemy
 
 download these packages in terminal to build the project yourself.
+or visit https://todo-saas-px83.onrender.com to see the global project! (users will be coming soon, global list will still be available)
