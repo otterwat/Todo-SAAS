@@ -4,27 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TODO</title>
-  <!-- Links the CSS file (the looks) -->
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <main>
-    <h1>My TODO List</h1>
 
-    <!-- A form lets the user press Enter OR click the button to add an item -->
-    <form id="add-form">
-      <input id="todo-input" type="text" placeholder="What needs doing?" required>
-      <button type="submit">Add</button>
-    </form>
+    <!-- ===== VIEW 1: shown when you're NOT logged in ===== -->
+    <section id="auth-view" hidden>
+      <h1>TODO</h1>
 
-    <!-- Shows errors (like "can't reach the server") -->
-    <p id="message"></p>
+      <div class="tabs">
+        <button type="button" id="tab-login" class="tab active">Log in</button>
+        <button type="button" id="tab-signup" class="tab">Sign up</button>
+      </div>
 
-    <!-- JavaScript fills this list in with your todos -->
-    <ul id="todo-list"></ul>
+      <form id="login-form" class="stack">
+        <input id="login-username" type="text" placeholder="Username"
+               autocomplete="username" required>
+        <input id="login-password" type="password" placeholder="Password"
+               autocomplete="current-password" required>
+        <button type="submit">Log in</button>
+      </form>
+
+      <form id="signup-form" class="stack" hidden>
+        <input id="signup-username" type="text" placeholder="Choose a username (3+ characters)"
+               autocomplete="username" minlength="3" maxlength="50" required>
+        <input id="signup-password" type="password" placeholder="Choose a password (8+ characters)"
+               autocomplete="new-password" minlength="8" maxlength="128" required>
+        <button type="submit">Create account</button>
+      </form>
+
+      <p id="auth-message" class="error"></p>
+    </section>
+
+    <!-- ===== VIEW 2: shown when you ARE logged in ===== -->
+    <section id="todo-view" hidden>
+      <div class="header-row">
+        <h1>My TODO List</h1>
+        <div>
+          <span id="current-user"></span>
+          <button type="button" id="logout-button" class="secondary">Log out</button>
+        </div>
+      </div>
+
+      <form id="add-form">
+        <input id="todo-input" type="text" placeholder="What needs doing?"
+               maxlength="200" required>
+        <button type="submit">Add</button>
+      </form>
+
+      <p id="message" class="error"></p>
+      <ul id="todo-list"></ul>
+    </section>
+
   </main>
 
-  <!-- Links the JS file (the behavior). It goes last so the HTML above exists first -->
   <script src="/static/script.js"></script>
 </body>
 </html>

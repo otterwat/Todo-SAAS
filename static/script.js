@@ -1,19 +1,145 @@
-// The address of your API. A relative URL works because FastAPI serves this page too.
-const API_URL = "/todos";
+// ---------- Grab the HTML elements we need ----------
+const authView = document.getElementById("auth-view");
+const todoView = document.getElementById("todo-view");
 
-// Grab the HTML elements we need to work with
+const tabLogin = document.getElementById("tab-login");
+const tabSignup = document.getElementById("tab-signup");
+const loginForm = document.getElementById("login-form");
+const signupForm = document.getElementById("signup-form");
+const authMessage = document.getElementById("auth-message");
+
+const currentUser = document.getElementById("current-user");
+const logoutButton = document.getElementById("logout-button");
+
 const listEl = document.getElementById("todo-list");
-const form = document.getElementById("add-form");
-const input = document.getElementById("todo-input");
+const addForm = document.getElementById("add-form");
+const todoInput = document.getElementById("todo-input");
 const message = document.getElementById("message");
 
-// ---------- VIEW: GET /todos ----------
+
+// ---------- Helper: talk to the API and handle errors in one place ----------
+// Returns the JSON reply. If the server says something went wrong,
+// it throws an Error whose message is the server's explanation.
+async function api(url, method = "GET", body = null) {
+  const options = { method: method, headers: {} };
+  if (body !== null) {
+    options.headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, options);   // the login cookie is sent automatically
+
+  if (response.status === 401 && url !== "/login") {
+    showAuthView();                              // login expired: send them back to log in
+    throw new Error("Please log in.");
+  }
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (e) {
+    // some replies have no JSON body, that's fine
+  }
+
+  if (!response.ok) {
+    throw new Error(readError(data));
+  }
+  return data;
+}
+
+// FastAPI sends errors in two shapes: a plain string, or a list of
+// validation problems (like "password too short"). This handles both.
+function readError(data) {
+  if (data && typeof data.detail === "string") {
+    return data.detail;
+  }
+  if (data && Array.isArray(data.detail) && data.detail.length > 0) {
+    const first = data.detail[0];
+    const field = first.loc ? first.loc[first.loc.length - 1] : "input";
+    return `Problem with ${field}: ${first.msg}`;
+  }
+  return "Something went wrong.";
+}
+
+
+// ---------- Switching between the two views ----------
+function showAuthView() {
+  todoView.hidden = true;
+  authView.hidden = false;
+}
+
+function showTodoView(user) {
+  authView.hidden = true;
+  todoView.hidden = false;
+  currentUser.textContent = user.username;   // textContent is safe against HTML injection
+  loadTodos();
+}
+
+function showTab(which) {
+  const isLogin = which === "login";
+  loginForm.hidden = !isLogin;
+  signupForm.hidden = isLogin;
+  tabLogin.classList.toggle("active", isLogin);
+  tabSignup.classList.toggle("active", !isLogin);
+  authMessage.textContent = "";
+}
+
+tabLogin.addEventListener("click", () => showTab("login"));
+tabSignup.addEventListener("click", () => showTab("signup"));
+
+
+// ---------- Sign up ----------
+signupForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  authMessage.textContent = "";
+  try {
+    const user = await api("/signup", "POST", {
+      username: document.getElementById("signup-username").value,
+      password: document.getElementById("signup-password").value,
+    });
+    signupForm.reset();
+    showTodoView(user);          // signing up also logs you in
+  } catch (error) {
+    authMessage.textContent = error.message;
+  }
+});
+
+
+// ---------- Log in ----------
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  authMessage.textContent = "";
+  try {
+    const user = await api("/login", "POST", {
+      username: document.getElementById("login-username").value,
+      password: document.getElementById("login-password").value,
+    });
+    loginForm.reset();
+    showTodoView(user);
+  } catch (error) {
+    authMessage.textContent = error.message;
+  }
+});
+
+
+// ---------- Log out ----------
+logoutButton.addEventListener("click", async () => {
+  try {
+    await api("/logout", "POST");
+  } catch (error) {
+    // even if this fails, show the login screen
+  }
+  listEl.innerHTML = "";
+  showTab("login");
+  showAuthView();
+});
+
+
+// ---------- Todos ----------
 async function loadTodos() {
   try {
-    const response = await fetch(API_URL);          // ask the server for the list
-    const todos = await response.json();            // turn the reply into a JS array
-
-    listEl.innerHTML = "";                          // clear the old list
+    const todos = await api("/todos");
+    listEl.innerHTML = "";
     message.textContent = "";
 
     if (todos.length === 0) {
@@ -24,7 +150,7 @@ async function loadTodos() {
       const li = document.createElement("li");
 
       const span = document.createElement("span");
-      span.textContent = todo.text;                 // textContent is safe against HTML injection
+      span.textContent = todo.text;
 
       const button = document.createElement("button");
       button.textContent = "Complete";
@@ -34,42 +160,45 @@ async function loadTodos() {
       listEl.appendChild(li);
     }
   } catch (error) {
-    message.textContent = "Could not reach the server.";
+    message.textContent = error.message;
   }
 }
 
-// ---------- ADD: POST /todos ----------
 async function addTodo(text) {
   try {
-    await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },   // tells the server we're sending JSON
-      body: JSON.stringify({ text: text })               // matches your TodoCreate model
-    });
-    loadTodos();                                         // refresh the list
-  } catch (error) {
-    message.textContent = "Could not add the item.";
-  }
-}
-
-// ---------- COMPLETE: DELETE /todos/{id} ----------
-async function completeTodo(id) {
-  try {
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    await api("/todos", "POST", { text: text });
     loadTodos();
   } catch (error) {
-    message.textContent = "Could not complete the item.";
+    message.textContent = error.message;
   }
 }
 
-// Runs when the form is submitted (button click or pressing Enter)
-form.addEventListener("submit", (event) => {
-  event.preventDefault();          // stop the browser from reloading the page
-  const text = input.value.trim();
+async function completeTodo(id) {
+  try {
+    await api(`/todos/${id}`, "DELETE");
+    loadTodos();
+  } catch (error) {
+    message.textContent = error.message;
+  }
+}
+
+addForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = todoInput.value.trim();
   if (text === "") return;
   addTodo(text);
-  input.value = "";                // clear the box
+  todoInput.value = "";
 });
 
-// Load the list as soon as the page opens
-loadTodos();
+
+// ---------- When the page first opens: am I already logged in? ----------
+async function start() {
+  try {
+    const user = await api("/me");   // works if the login cookie is still valid
+    showTodoView(user);
+  } catch (error) {
+    showAuthView();
+  }
+}
+
+start();

@@ -1,5 +1,7 @@
 fastapi
-sqlalchemy
 uvicorn
+sqlalchemy
 psycopg[binary]
 python-dotenv
+itsdangerous
+pwdlib[argon2]
