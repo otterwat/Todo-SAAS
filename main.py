@@ -1,65 +1,85 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Optional, List
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel, ConfigDict
+from typing import List
 
 from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.orm import sessionmaker, session
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
 
+import uvicorn
 
-dataBaseURL = ("sqlite:///todos.db")
+# ---------- Database setup ----------
+dataBaseURL = "sqlite:///todos.db"
 engine = create_engine(dataBaseURL, connect_args={"check_same_thread": False})
 sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-app = FastAPI(title="TODO List API")
-
-todoList = []
+base = declarative_base()
 
 
-class TodoItem(Base):
-	__tablename__ = "todos"
+class TodoItem(base):  # database table
+    __tablename__ = "todos"
 
-	id = Column(Integer, primary_key=True, index=True)
-	text = Column(String(200), index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String(200), index=True)
 
-Base.metadata.create_all(engine)
 
+base.metadata.create_all(engine)  # creates the table if it doesn't exist
+
+
+# ---------- Data shapes (what the API accepts and returns) ----------
 class TodoCreate(BaseModel):
-	text: str
+    text: str
+
 
 class TodoRead(BaseModel):
-	id: int
-	text: str
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    text: str
+
+
+# ---------- Database session helper ----------
+def get_db():
+    db = sessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# ---------- API ----------
+app = FastAPI(title="TODO List API")
+
 
 @app.get("/")
 def root():
-	return {
-		"message": "Welcome to TODO!"
-	}
+    return {"message": "Welcome to TODO!"}
 
 
-@app.get("/todos")
-def view_list():
-	return {"todos": todoList}
+@app.get("/todos", response_model=List[TodoRead])
+def view_list(db: Session = Depends(get_db)):
+    return db.query(TodoItem).all()
 
 
-@app.post("/todos")
-def add_item(item: TodoItem):
-	todoList.append(item.text.strip())
-	return {
-		"message": f"'{item.text.strip()}' has been added to your TODO list.",
-		"todos": todoList,
-	}
+@app.post("/todos", response_model=TodoRead)
+def add_item(item: TodoCreate, db: Session = Depends(get_db)):
+    newItem = TodoItem(text=item.text.strip())
+    db.add(newItem)
+    db.commit()
+    db.refresh(newItem)  # loads the id the database just assigned
+    return newItem
 
 
-@app.delete("/todos/{item_number}")
-def complete_item(item_number: int):
-	if item_number < 1 or item_number > len(todoList):
-		raise HTTPException(status_code=404, detail="Invalid item number.")
+@app.delete("/todos/{item_id}")
+def complete_item(item_id: int, db: Session = Depends(get_db)):
+    item = db.query(TodoItem).filter(TodoItem.id == item_id).first()
 
-	removed = todoList.pop(item_number - 1)
-	return {
-		"message": f"Item {item_number} ({removed}) has been marked as complete and removed.",
-		"todos": todoList,
-	}
+    if item is None:
+        raise HTTPException(status_code=404, detail="Invalid item id.")
+
+    removedText = item.text
+    db.delete(item)
+    db.commit()
+    return {"message": f"Item {item_id} ({removedText}) has been marked as complete and removed."}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)
