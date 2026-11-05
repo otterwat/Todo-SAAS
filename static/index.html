@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TODO</title>
+  <!-- Links the CSS file (the looks) -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main>
+    <h1>My TODO List</h1>
+
+    <!-- A form lets the user press Enter OR click the button to add an item -->
+    <form id="add-form">
+      <input id="todo-input" type="text" placeholder="What needs doing?" required>
+      <button type="submit">Add</button>
+    </form>
+
+    <!-- Shows errors (like "can't reach the server") -->
+    <p id="message"></p>
+
+    <!-- JavaScript fills this list in with your todos -->
+    <ul id="todo-list"></ul>
+  </main>
+
+  <!-- Links the JS file (the behavior). It goes last so the HTML above exists first -->
+  <script src="/static/script.js"></script>
+</body>
+</html>

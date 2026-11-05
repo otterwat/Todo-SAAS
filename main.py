@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, ConfigDict
 from typing import List
-
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
-
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import uvicorn
 
 # ---------- Database setup ----------
@@ -48,10 +48,11 @@ def get_db():
 # ---------- API ----------
 app = FastAPI(title="TODO List API")
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to TODO!"}
+    return FileResponse("static/index.html")
 
 
 @app.get("/todos", response_model=List[TodoRead])
