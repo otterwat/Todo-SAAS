@@ -1,18 +1,39 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, ConfigDict
 from typing import List
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.orm import sessionmaker, Session, declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, text
+from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from dotenv import load_dotenv
 import uvicorn
+import os
 
 # ---------- Database setup ----------
-dataBaseURL = "sqlite:///todos.db"
-engine = create_engine(dataBaseURL, connect_args={"check_same_thread": False})
-sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-base = declarative_base()
+# Use the DATABASE_URL environment variable if it exists (on Render),
+# otherwise fall back to the local SQLite file (on your own computer).
+load_dotenv()
+dataBaseURL = os.getenv("DATABASE_URL", "sqlite:///todos.db")
 
+# Some providers give a URL starting with "postgres://",
+# but SQLAlchemy needs "postgresql://", so we fix it if needed.
+if dataBaseURL.startswith("postgres://"):
+    dataBaseURL = dataBaseURL.replace("postgres://", "postgresql+psycopg://", 1)
+elif dataBaseURL.startswith("postgresql://"):
+    dataBaseURL = dataBaseURL.replace("postgresql://", "postgresql+psycopg://", 1)
+
+if dataBaseURL.startswith("sqlite"):
+    # check_same_thread is a SQLite-only setting
+    engine = create_engine(dataBaseURL, connect_args={"check_same_thread": False})
+else:
+    # pool_pre_ping tests a connection before using it, which helps
+    # when a free database has gone idle and dropped the connection
+    engine = create_engine(dataBaseURL, pool_pre_ping=True)
+
+sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+class base(DeclarativeBase):
+    pass
 
 class TodoItem(base):  # database table
     __tablename__ = "todos"
