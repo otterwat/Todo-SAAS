@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TODO</title>
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="/static/favicon.ico">
 </head>
 <body>
     <main>
@@ -45,11 +46,24 @@
 
         <!-- ===== VIEW 2: shown when you are logged in ===== -->
         <section id="todo-view" hidden>
-            <form id="add-form">
-                ...
-            </form>
 
-            <!-- Notes area -->
+            <!-- 1. Header -->
+            <div class="header-row">
+                <h1>My TODO List</h1>
+                <div>
+                    <span id="current-user"></span>
+                    <button type="button" id="logout-button" class="secondary">Log out</button>
+                </div>
+            </div>
+
+            <!-- 2. Add form -->
+            <form id="add-form">
+                <input id="todo-input" type="text" placeholder="What needs doing?"
+                       maxlength="200" required>
+                <button type="submit">Add</button>
+            </form>
+            <br>
+            <!-- 3. Notes -->
             <div id="notes-section">
                 <label for="notes-input">Notes</label>
                 <textarea id="notes-input" rows="3" maxlength="250"
@@ -60,32 +74,16 @@
                 </div>
             </div>
 
-            <!-- Todo list items area -->
+            <!-- 4. Message + list -->
             <p id="message" class="error"></p>
             <ul id="todo-list"></ul>
 
-            <div class="header-row">
-                <h1>My TODO List</h1>
-                <div>
-                    <span id="current-user"></span>
-                    <button type="button" id="logout-button" class="secondary">Log out</button>
-                </div>
-            </div>
-
-            <form id="add-form">
-                <input id="todo-input" type="text" placeholder="What needs doing?"
-                       maxlength="200" required>
-                <button type="submit">Add</button>
-            </form>
-
-            <p id="message" class="error"></p>
-            <ul id="todo-list"></ul>
         </section>
 
     </main>
 
     <!-- SCRIPT SOURCE: Change 'v=...' +1 every time a hard update is needed -->
-    <script src="/static/script.js?v=2"></script>
-    <link rel="stylesheet" href="/static/style.css?v=2">
+    <script src="/static/script.js?v=3"></script>
+    <link rel="stylesheet" href="/static/style.css?v=3">
 </body>
 </html>
