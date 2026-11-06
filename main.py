@@ -58,8 +58,8 @@ class User(base):  # database table
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
-    # We store a HASH of the password, never the password itself.
     passwordHash = Column(String(255), nullable=False)
+    userNotes = Column(String(250), nullable=True)
 
     # One user has many todos. Deleting a user deletes their todos too.
     todos = relationship("TodoItem", back_populates="owner", cascade="all, delete-orphan")
@@ -99,6 +99,7 @@ class UserRead(BaseModel):
 
     id: int
     username: str
+    userNotes: Optional[str] = None
 
 
 class TodoCreate(BaseModel):
@@ -112,6 +113,10 @@ class TodoRead(BaseModel):
 
     id: int
     text: str
+
+
+class NotesUpdate(BaseModel):
+    userNotes: str = Field(max_length=250)
 
 
 # ---------- Helpers ----------
@@ -239,6 +244,14 @@ def complete_item(item_id: int, db: Session = Depends(get_db), user: User = Depe
     db.delete(item)
     db.commit()
     return {"message": f"Item {item_id} ({removedText}) has been marked as complete and removed."}
+
+
+@app.put("/me/notes", response_model=UserRead)
+def update_notes(data: NotesUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    user.userNotes = data.userNotes.strip()
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 if __name__ == "__main__":

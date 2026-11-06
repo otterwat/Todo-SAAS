@@ -117,3 +117,35 @@ button.secondary:hover {
 .error {
   color: #b91c1c;
 }
+
+/* ----- Notes ----- */
+#notes-section {
+	margin: 1rem 0;
+}
+
+	#notes-section label {
+		display: block; /* makes the label take its own line */
+		font-weight: 600;
+		margin-bottom: 0.3rem;
+	}
+
+#notes-input {
+	width: 100%;
+	box-sizing: border-box; /* makes padding count INSIDE the 100% width */
+	padding: 0.6rem;
+	font-family: inherit; /* textareas ignore the page font unless told to copy it */
+	font-size: 1rem;
+	resize: vertical; /* user can drag taller, but not wider */
+}
+
+.notes-row {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin-top: 0.4rem;
+}
+
+#notes-status {
+	color: #555;
+	font-size: 0.9rem;
+}

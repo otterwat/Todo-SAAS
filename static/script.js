@@ -16,6 +16,10 @@ const addForm = document.getElementById("add-form");
 const todoInput = document.getElementById("todo-input");
 const message = document.getElementById("message");
 
+const notesInput = document.getElementById("notes-input");
+const notesSave = document.getElementById("notes-save");
+const notesStatus = document.getElementById("notes-status");
+
 
 // ---------- Helper: talk to the API and handle errors in one place ----------
 // Returns the JSON reply. If the server says something went wrong,
@@ -69,10 +73,12 @@ function showAuthView() {
 }
 
 function showTodoView(user) {
-  authView.hidden = true;
-  todoView.hidden = false;
-  currentUser.textContent = user.username;   // textContent is safe against HTML injection
-  loadTodos();
+    authView.hidden = true;
+    todoView.hidden = false;
+    currentUser.textContent = user.username;
+    notesInput.value = user.userNotes || "";
+    notesStatus.textContent = "";
+    loadTodos();
 }
 
 function showTab(which) {
@@ -130,10 +136,22 @@ logoutButton.addEventListener("click", async () => {
     // even if this fails, show the login screen
   }
   listEl.innerHTML = "";
+    notesInput.value = "";
+  notesStatus.textContent = "";      
   showTab("login");
   showAuthView();
 });
 
+// ---------- Notes ----------
+notesSave.addEventListener("click", async () => {
+    notesStatus.textContent = "Saving...";
+    try {
+        await api("/me/notes", "PUT", { userNotes: notesInput.value });
+        notesStatus.textContent = "Saved!";
+    } catch (error) {
+        notesStatus.textContent = error.message;
+    }
+});
 
 // ---------- Todos ----------
 async function loadTodos() {
