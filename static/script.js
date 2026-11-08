@@ -20,6 +20,7 @@ const notesInput = document.getElementById("notes-input");
 const notesSave = document.getElementById("notes-save");
 const notesStatus = document.getElementById("notes-status");
 
+import confetti from 'canvas-confetti';
 
 // ---------- Helper: talk to the API and handle errors in one place ----------
 // Returns the JSON reply. If the server says something went wrong,
@@ -27,26 +28,26 @@ const notesStatus = document.getElementById("notes-status");
 async function api(url, method = "GET", body = null) {
   const options = { method: method, headers: {} };
   if (body !== null) {
-    options.headers["Content-Type"] = "application/json";
-    options.body = JSON.stringify(body);
+	options.headers["Content-Type"] = "application/json";
+	options.body = JSON.stringify(body);
   }
 
   const response = await fetch(url, options);   // the login cookie is sent automatically
 
   if (response.status === 401 && url !== "/login") {
-    showAuthView();                              // login expired: send them back to log in
-    throw new Error("Please log in.");
+	showAuthView();                              // login expired: send them back to log in
+	throw new Error("Please log in.");
   }
 
   let data = null;
   try {
-    data = await response.json();
+	data = await response.json();
   } catch (e) {
-    // some replies have no JSON body, that's fine
+	// some replies have no JSON body, that's fine
   }
 
   if (!response.ok) {
-    throw new Error(readError(data));
+	throw new Error(readError(data));
   }
   return data;
 }
@@ -55,12 +56,12 @@ async function api(url, method = "GET", body = null) {
 // validation problems (like "password too short"). This handles both.
 function readError(data) {
   if (data && typeof data.detail === "string") {
-    return data.detail;
+	return data.detail;
   }
   if (data && Array.isArray(data.detail) && data.detail.length > 0) {
-    const first = data.detail[0];
-    const field = first.loc ? first.loc[first.loc.length - 1] : "input";
-    return `Problem with ${field}: ${first.msg}`;
+	const first = data.detail[0];
+	const field = first.loc ? first.loc[first.loc.length - 1] : "input";
+	return `Problem with ${field}: ${first.msg}`;
   }
   return "Something went wrong.";
 }
@@ -73,12 +74,12 @@ function showAuthView() {
 }
 
 function showTodoView(user) {
-    authView.hidden = true;
-    todoView.hidden = false;
-    currentUser.textContent = user.username;
-    notesInput.value = user.userNotes || "";
-    notesStatus.textContent = "";
-    loadTodos();
+	authView.hidden = true;
+	todoView.hidden = false;
+	currentUser.textContent = user.username;
+	notesInput.value = user.userNotes || "";
+	notesStatus.textContent = "";
+	loadTodos();
 }
 
 function showTab(which) {
@@ -99,14 +100,14 @@ signupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   authMessage.textContent = "";
   try {
-    const user = await api("/signup", "POST", {
-      username: document.getElementById("signup-username").value,
-      password: document.getElementById("signup-password").value,
-    });
-    signupForm.reset();
-    showTodoView(user);          // signing up also logs you in
+	const user = await api("/signup", "POST", {
+	  username: document.getElementById("signup-username").value,
+	  password: document.getElementById("signup-password").value,
+	});
+	signupForm.reset();
+	showTodoView(user);          // signing up also logs you in
   } catch (error) {
-    authMessage.textContent = error.message;
+	authMessage.textContent = error.message;
   }
 });
 
@@ -116,14 +117,14 @@ loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   authMessage.textContent = "";
   try {
-    const user = await api("/login", "POST", {
-      username: document.getElementById("login-username").value,
-      password: document.getElementById("login-password").value,
-    });
-    loginForm.reset();
-    showTodoView(user);
+	const user = await api("/login", "POST", {
+	  username: document.getElementById("login-username").value,
+	  password: document.getElementById("login-password").value,
+	});
+	loginForm.reset();
+	showTodoView(user);
   } catch (error) {
-    authMessage.textContent = error.message;
+	authMessage.textContent = error.message;
   }
 });
 
@@ -131,12 +132,12 @@ loginForm.addEventListener("submit", async (event) => {
 // ---------- Log out ----------
 logoutButton.addEventListener("click", async () => {
   try {
-    await api("/logout", "POST");
+	await api("/logout", "POST");
   } catch (error) {
-    // even if this fails, show the login screen
+	// even if this fails, show the login screen
   }
   listEl.innerHTML = "";
-    notesInput.value = "";
+	notesInput.value = "";
   notesStatus.textContent = "";      
   showTab("login");
   showAuthView();
@@ -144,59 +145,60 @@ logoutButton.addEventListener("click", async () => {
 
 // ---------- Notes ----------
 notesSave.addEventListener("click", async () => {
-    notesStatus.textContent = "Saving...";
-    try {
-        await api("/me/notes", "PUT", { userNotes: notesInput.value });
-        notesStatus.textContent = "Saved!";
-    } catch (error) {
-        notesStatus.textContent = error.message;
-    }
+	notesStatus.textContent = "Saving...";
+	try {
+		await api("/me/notes", "PUT", { userNotes: notesInput.value });
+		notesStatus.textContent = "Saved!";
+	} catch (error) {
+		notesStatus.textContent = error.message;
+	}
 });
 
 // ---------- Todos ----------
 async function loadTodos() {
   try {
-    const todos = await api("/todos");
-    listEl.innerHTML = "";
-    message.textContent = "";
+	const todos = await api("/todos");
+	listEl.innerHTML = "";
+	message.textContent = "";
 
-    if (todos.length === 0) {
-      message.textContent = "Nothing to do. Add something!";
-    }
+	if (todos.length === 0) {
+	  message.textContent = "Nothing to do. Add something!";
+	}
 
-    for (const todo of todos) {
-      const li = document.createElement("li");
+	for (const todo of todos) {
+	  const li = document.createElement("li");
 
-      const span = document.createElement("span");
-      span.textContent = todo.text;
+	  const span = document.createElement("span");
+	  span.textContent = todo.text;
 
-      const button = document.createElement("button");
-      button.textContent = "Complete";
-      button.addEventListener("click", () => completeTodo(todo.id));
+	  const button = document.createElement("button");
+	  button.textContent = "Complete";
+	  button.addEventListener("click", () => completeTodo(todo.id));
 
-      li.append(span, button);
-      listEl.appendChild(li);
-    }
+	  li.append(span, button);
+	  listEl.appendChild(li);
+	}
   } catch (error) {
-    message.textContent = error.message;
+	message.textContent = error.message;
   }
 }
 
 async function addTodo(text) {
   try {
-    await api("/todos", "POST", { text: text });
-    loadTodos();
+	await api("/todos", "POST", { text: text });
+	loadTodos();
   } catch (error) {
-    message.textContent = error.message;
+	message.textContent = error.message;
   }
 }
 
 async function completeTodo(id) {
   try {
-    await api(`/todos/${id}`, "DELETE");
-    loadTodos();
+	await api(`/todos/${id}`, "DELETE");
+	confetti();
+	loadTodos();
   } catch (error) {
-    message.textContent = error.message;
+	message.textContent = error.message;
   }
 }
 
@@ -211,16 +213,16 @@ addForm.addEventListener("submit", (event) => {
 
 // ---------- When the page first opens: am I already logged in? ----------
 async function start() {
-    try {
-        const user = await api("/me");
-        if (user) {
-            showTodoView(user);
-        } else {
-            showAuthView();
-        }
-    } catch (error) {
-        showAuthView();
-    }
+	try {
+		const user = await api("/me");
+		if (user) {
+			showTodoView(user);
+		} else {
+			showAuthView();
+		}
+	} catch (error) {
+		showAuthView();
+	}
 }
 
 start();
