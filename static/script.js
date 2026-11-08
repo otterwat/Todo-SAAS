@@ -184,6 +184,7 @@ async function loadTodos() {
 async function addTodo(text) {
   try {
 	await api("/todos", "POST", { text: text });
+	confetti();
 	loadTodos();
   } catch (error) {
 	message.textContent = error.message;
