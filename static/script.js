@@ -20,8 +20,6 @@ const notesInput = document.getElementById("notes-input");
 const notesSave = document.getElementById("notes-save");
 const notesStatus = document.getElementById("notes-status");
 
-import confetti from 'canvas-confetti';
-
 // ---------- Helper: talk to the API and handle errors in one place ----------
 // Returns the JSON reply. If the server says something went wrong,
 // it throws an Error whose message is the server's explanation.
@@ -195,7 +193,6 @@ async function addTodo(text) {
 async function completeTodo(id) {
   try {
 	await api(`/todos/${id}`, "DELETE");
-	confetti();
 	loadTodos();
   } catch (error) {
 	message.textContent = error.message;
