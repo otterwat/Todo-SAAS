@@ -184,7 +184,6 @@ async function loadTodos() {
 async function addTodo(text) {
   try {
 	await api("/todos", "POST", { text: text });
-	confetti();
 	loadTodos();
   } catch (error) {
 	message.textContent = error.message;
@@ -194,6 +193,11 @@ async function addTodo(text) {
 async function completeTodo(id) {
   try {
 	await api(`/todos/${id}`, "DELETE");
+	if (typeof confetti === "function") {
+		confetti();
+	} else {
+		console.log('confetti is broken!');
+	}
 	loadTodos();
   } catch (error) {
 	message.textContent = error.message;
