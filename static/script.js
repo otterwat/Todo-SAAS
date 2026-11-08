@@ -196,7 +196,7 @@ async function completeTodo(id) {
 	if (typeof confetti === "function") {
 		confetti();
 	} else {
-		console.log('confetti is broken!');
+		console.error('confetti is broken!');
 	}
 	loadTodos();
   } catch (error) {
