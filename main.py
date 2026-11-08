@@ -153,12 +153,12 @@ app.add_middleware(
     max_age=14 * 24 * 60 * 60, # stay logged in for 14 days
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/Static", StaticFiles(directory="Static"), name="Static")
 
 
 @app.get("/")
 def root():
-    return FileResponse("static/index.html")
+    return FileResponse("Static/index.html")
 
 
 # --- Account endpoints ---

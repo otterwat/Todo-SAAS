@@ -1,8 +1,0 @@
-<Solution>
-  <Folder Name="/Solution Items/">
-    <File Path="main.py" />
-  </Folder>
-  <Project Path="TodoSAAS.pyproj" Type="888888a0-9f3d-457c-b088-3a5042f75d52" Id="78a2452a-242a-4e4b-8b56-f758f2a748fa">
-    <Build Project="false" />
-  </Project>
-</Solution>

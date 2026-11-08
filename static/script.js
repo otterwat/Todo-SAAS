@@ -6,6 +6,8 @@ const tabLogin = document.getElementById("tab-login");
 const tabSignup = document.getElementById("tab-signup");
 const loginForm = document.getElementById("login-form");
 const signupForm = document.getElementById("signup-form");
+const loginButton = document.querySelector('#login-form button[type="submit"]');
+const signupButton = document.querySelector('#signup-form button[type="submit"]');
 const authMessage = document.getElementById("auth-message");
 
 const currentUser = document.getElementById("current-user");
@@ -13,6 +15,7 @@ const logoutButton = document.getElementById("logout-button");
 
 const listEl = document.getElementById("todo-list");
 const addForm = document.getElementById("add-form");
+const addButton = document.querySelector('#add-form button[type="submit"]');
 const todoInput = document.getElementById("todo-input");
 const message = document.getElementById("message");
 
@@ -20,9 +23,11 @@ const notesInput = document.getElementById("notes-input");
 const notesSave = document.getElementById("notes-save");
 const notesStatus = document.getElementById("notes-status");
 
-// ---------- Helper: talk to the API and handle errors in one place ----------
-// Returns the JSON reply. If the server says something went wrong,
-// it throws an Error whose message is the server's explanation.
+// ---------- Load the sound effects ---------- //
+const selectAudio = new Audio("/Static/Assets/select.mp3");
+const confettiAudio = new Audio("/Static/Assets/confetti.mp3");
+
+// ---------- Helpers ---------- //
 async function api(url, method = "GET", body = null) {
   const options = { method: method, headers: {} };
   if (body !== null) {
@@ -60,10 +65,16 @@ function readError(data) {
 	const first = data.detail[0];
 	const field = first.loc ? first.loc[first.loc.length - 1] : "input";
 	return `Problem with ${field}: ${first.msg}`;
-  }
-  return "Something went wrong.";
+	}
+	return "Something went wrong.";
+
 }
 
+// Plays sounds //
+function playSound(sound) {
+	sound.currentTime = 0;                 // rewind, so rapid clicks replay it from the start
+	sound.play().catch(() => { });          // ignore the error if the browser blocks it
+}
 
 // ---------- Switching between the two views ----------
 function showAuthView() {
@@ -89,8 +100,12 @@ function showTab(which) {
   authMessage.textContent = "";
 }
 
-tabLogin.addEventListener("click", () => showTab("login"));
-tabSignup.addEventListener("click", () => showTab("signup"));
+tabLogin.addEventListener("click", () => { playSound(selectAudio); showTab("login"); });
+tabSignup.addEventListener("click", () => { playSound(selectAudio); showTab("signup"); });
+loginButton.addEventListener("click", () => { playSound(selectAudio); });
+signupButton.addEventListener("click", () => { playSound(selectAudio); });
+addButton.addEventListener("click", () => { playSound(selectAudio); });
+
 
 
 // ---------- Sign up ----------
@@ -193,6 +208,7 @@ async function addTodo(text) {
 async function completeTodo(id) {
   try {
 	await api(`/todos/${id}`, "DELETE");
+	playSound(confettiAudio);
 	confetti();
 	loadTodos();
   } catch (error) {

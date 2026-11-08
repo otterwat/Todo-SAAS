@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: todo_postgres_db
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: todo_db_test
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d todo_db_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: todo_web_app
+    ports:
+      - "8000:8000"  # Maps port 8000 on your PC to port 8000 in the container
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgresql://test_user:test_password@db:5432/todo_db_test
+    volumes:
+      - .:/app       # Live-reloads code changes instantly without rebuilding!
+    depends_on:
+      db:
+        condition: service_healthy
+    # Uses your startup command + adds --reload flag so it auto-restarts on code edits
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  pgdata:
