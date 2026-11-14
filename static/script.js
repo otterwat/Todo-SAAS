@@ -1,4 +1,4 @@
-// ---------- Grab the HTML elements we need ----------
+// HTML elements
 const authView = document.getElementById("auth-view");
 const todoView = document.getElementById("todo-view");
 
@@ -35,10 +35,10 @@ async function api(url, method = "GET", body = null) {
 	options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url, options);   // the login cookie is sent automatically
+  const response = await fetch(url, options);  
 
   if (response.status === 401 && url !== "/login") {
-	showAuthView();                              // login expired: send them back to log in
+	showAuthView();
 	throw new Error("Please log in.");
   }
 
@@ -46,7 +46,7 @@ async function api(url, method = "GET", body = null) {
   try {
 	data = await response.json();
   } catch (e) {
-	// some replies have no JSON body, that's fine
+	// no JSON body
   }
 
   if (!response.ok) {
@@ -55,8 +55,6 @@ async function api(url, method = "GET", body = null) {
   return data;
 }
 
-// FastAPI sends errors in two shapes: a plain string, or a list of
-// validation problems (like "password too short"). This handles both.
 function readError(data) {
   if (data && typeof data.detail === "string") {
 	return data.detail;
@@ -72,11 +70,11 @@ function readError(data) {
 
 // Plays sounds //
 function playSound(sound) {
-	sound.currentTime = 0;                 // rewind, so rapid clicks replay it from the start
-	sound.play().catch(() => { });          // ignore the error if the browser blocks it
+	sound.currentTime = 0;
+	sound.play().catch(() => { });
 }
 
-// ---------- Switching between the two views ----------
+// view swithing
 function showAuthView() {
   todoView.hidden = true;
   authView.hidden = false;
@@ -108,7 +106,7 @@ addButton.addEventListener("click", () => { playSound(selectAudio); });
 
 
 
-// ---------- Sign up ----------
+// Sign up
 signupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   authMessage.textContent = "";
@@ -125,7 +123,7 @@ signupForm.addEventListener("submit", async (event) => {
 });
 
 
-// ---------- Log in ----------
+// log in
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   authMessage.textContent = "";
@@ -142,7 +140,7 @@ loginForm.addEventListener("submit", async (event) => {
 });
 
 
-// ---------- Log out ----------
+// log out
 logoutButton.addEventListener("click", async () => {
   try {
 	await api("/logout", "POST");
@@ -156,7 +154,7 @@ logoutButton.addEventListener("click", async () => {
   showAuthView();
 });
 
-// ---------- Notes ----------
+// notes
 notesSave.addEventListener("click", async () => {
 	notesStatus.textContent = "Saving...";
 	try {
@@ -167,7 +165,7 @@ notesSave.addEventListener("click", async () => {
 	}
 });
 
-// ---------- Todos ----------
+// todos
 async function loadTodos() {
   try {
 	const todos = await api("/todos");
@@ -225,7 +223,7 @@ addForm.addEventListener("submit", (event) => {
 });
 
 
-// ---------- When the page first opens: am I already logged in? ----------
+// check if logged in already
 async function start() {
 	try {
 		const user = await api("/me");

@@ -10,7 +10,7 @@
 <body>
 	<main>
 
-		<!-- ===== VIEW 1: shown when you're NOT logged in ===== -->
+		<!-- not logged in view -->
 		<section id="auth-view" hidden>
 			<h1>TODO</h1>
 
@@ -44,7 +44,7 @@
 			<p id="auth-message" class="error"></p>
 		</section>
 
-		<!-- ===== VIEW 2: shown when you are logged in ===== -->
+		<!-- logged in view-->
 		<section id="todo-view" hidden>
 
 			<!-- 1. Header -->
@@ -56,14 +56,13 @@
 				</div>
 			</div>
 
-			<!-- 2. Add form -->
 			<form id="add-form">
 				<input id="todo-input" type="text" placeholder="What needs doing?"
 					   maxlength="200" required>
 				<button type="submit">Add</button>
 			</form>
 			<br>
-			<!-- 3. Notes -->
+
 			<div id="notes-section">
 				<label for="notes-input">Notes</label>
 				<textarea id="notes-input" rows="3" maxlength="250"
@@ -74,7 +73,6 @@
 				</div>
 			</div>
 
-			<!-- 4. Message + list -->
 			<p id="message" class="error"></p>
 			<ul id="todo-list"></ul>
 

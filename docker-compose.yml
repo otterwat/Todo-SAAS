@@ -24,13 +24,9 @@ services:
     environment:
       - PORT=8000
       - DATABASE_URL=postgresql://test_user:test_password@db:5432/todo_db_test
-    volumes:
-      - .:/app       # Live-reloads code changes instantly without rebuilding!
     depends_on:
       db:
         condition: service_healthy
-    # Uses your startup command + adds --reload flag so it auto-restarts on code edits
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   pgdata:
